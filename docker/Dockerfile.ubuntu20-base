@@ -14,6 +14,10 @@ RUN <<EOT
     DEBIAN_FRONTEND=noninteractive apt install -y tzdata keyboard-configuration
 
     apt install -y sudo vim git g++ make gdb bash-completion wget gnupg software-properties-common
+    
+    # Enable the bash_completion
+    echo ". /etc/bash_completion" >> /root/.bashrc
+
     apt install -y python3.8 python-is-python3
     apt clean
 EOT
