@@ -1,0 +1,51 @@
+# syntax=docker/dockerfile:1
+# escape=\
+
+# ubuntu:20.04-cuda111
+FROM hielamonboren/docker_image_configs:ubuntu20-cuda111 AS UBUNTU20-CUDA111 
+
+RUN apt update
+
+# install the miniconda3
+RUN <<EOT
+    set -ex
+    mkdir -p ~/miniconda3
+    wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+    bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+    rm -rf ~/miniconda3/miniconda.sh
+    ~/miniconda3/condabin/conda init bash
+EOT
+
+# setup the maptr conda environment
+SHELL ["/bin/bash", "-c"]
+RUN <<EOT
+    set -ex
+    cd ~
+
+    # Avoid to skip the bashrc by export PS1 to nonempty
+    export PS1=1
+    source ~/.bashrc
+    conda deactivate
+    conda create -n maptr python=3.8 -y
+    conda activate maptr
+    echo "numba==0.48.0" >> /root/maptr_pip_constraints.txt
+    echo "numpy==1.21.5" >> /root/maptr_pip_constraints.txt
+    echo "yapf==0.40.1" >> /root/maptr_pip_constraints.txt
+    export PIP_CONSTRAINT=/root/maptr_pip_constraints.txt
+
+    echo "conda activate maptr" >> /root/.bashrc
+    echo "export PIP_CONSTRAINT=/root/maptr_pip_constraints.txt" >> /root/.bashrc
+
+    wget -c -t 100 -T 1000 --quiet https://download.pytorch.org/whl/cu111/torch-1.9.1%2Bcu111-cp38-cp38-linux_x86_64.whl
+    pip install torch-1.9.1+cu111-cp38-cp38-linux_x86_64.whl
+    rm torch-1.9.1+cu111-cp38-cp38-linux_x86_64.whl
+    pip --timeout=1000 --retries=20 install torchvision==0.10.1+cu111 torchaudio==0.9.1 -f https://download.pytorch.org/whl/torch_stable.html
+
+    # Add some environment variables when we need the compile the mmcv-full from source
+    MMCV_WITH_OPS=1 FORCE_CUDA=1 TORCH_CUDA_ARCH_LIST="6.1;7.5+PTX" pip install mmcv-full==1.4.0
+    
+    pip install mmdet==2.14.0
+    pip install mmsegmentation==0.14.1
+    pip install timm
+EOT
+

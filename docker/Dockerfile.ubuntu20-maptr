@@ -1,0 +1,30 @@
+# syntax=docker/dockerfile:1
+# escape=\
+
+# ubuntu:20.04-maptrbase
+FROM hielamonboren/docker_image_configs:ubuntu20-maptrbase AS UBUNTU20-MAPTRBASE 
+
+RUN apt update
+
+# setup the maptr runtime environment
+SHELL ["/bin/bash", "-c"]
+RUN <<EOT
+    set -ex
+    # # Avoid to skip the bashrc by export PS1 to nonempty
+    cd ~
+    export PS1=1
+    source ~/.bashrc
+    
+    # runtime requirements
+    pip install networkx
+    pip install numba
+    pip install numpy
+    pip install nuscenes-devkit
+    pip install plyfile
+    pip install scikit-image
+    pip install tensorboard
+    pip install "trimesh>=2.35.39,<2.35.40"
+    pip install shapely==1.8.5.post1
+    pip install av2
+EOT
+

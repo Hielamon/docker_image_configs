@@ -1,0 +1,19 @@
+# syntax=docker/dockerfile:1
+# escape=\
+
+# ubuntu:20.04
+FROM ubuntu:focal-20240427 AS UBUNTU20
+
+RUN apt update
+
+
+
+# basic package layer
+RUN <<EOT
+    set -ex
+    DEBIAN_FRONTEND=noninteractive apt install -y tzdata keyboard-configuration
+
+    apt install -y sudo vim git g++ make gdb bash-completion wget gnupg software-properties-common
+    apt install -y python3.8 python-is-python3
+    apt clean
+EOT

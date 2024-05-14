@@ -1,0 +1,34 @@
+# syntax=docker/dockerfile:1
+# escape=\
+
+# ubuntu:20.04-base
+FROM hielamonboren/docker_image_configs:ubuntu20-base AS UBUNTU20-BASE 
+
+RUN apt update
+
+# install cuda-toolkit-11-1
+RUN <<EOT
+    set -ex 
+    cd ~
+    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.1-1_all.deb
+    dpkg -i cuda-keyring_1.1-1_all.deb
+    apt-get update
+    apt-get install -y cuda-toolkit-11-1
+
+    echo "export PATH=/usr/local/cuda-11.1/bin\${PATH:+:\${PATH}}" >> /root/.bashrc
+    echo "export LD_LIBRARY_PATH=/usr/local/cuda-11.1/lib64\${LD_LIBRARY_PATH:+:\${LD_LIBRARY_PATH}}" >> /root/.bashrc
+
+    apt-get install -y zlib1g 
+    apt-get install -y libcudnn9-cuda-11 libcudnn9-dev-cuda-11 libcudnn9-static-cuda-11
+
+    apt-get install -y libfreeimage3 libfreeimage-dev
+    
+    # Verifying the cudnn install
+    # apt-get install -y libcudnn9-samples
+    # cd /usr/src/cudnn_samples_v9/mnistCUDNN
+    # ./mnistCUDNN |& grep "Test passed" | wc -l |& grep 1
+
+    apt clean
+EOT
+
+
